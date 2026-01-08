@@ -15,9 +15,12 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+		// Remove new-blog/ prefix from the pathname
+		const pathname = url.pathname.replace(/^\/new-blog/, '');
+
     // Construct target URL
     const targetUrl = new URL(
-      `https://chatgpt.com/backend-api/codex${url.pathname}${url.search}`
+      `https://chatgpt.com/backend-api/codex${pathname}${url.search}`
     );
 
     // Clone headers and optionally adjust them
