@@ -12,7 +12,40 @@
  */
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // Construct target URL
+    const targetUrl = new URL(
+      `https://chatgpt.com/backend-api/codex${url.pathname}${url.search}`
+    );
+
+    // Clone headers and optionally adjust them
+    const headers = new Headers(request.headers);
+
+    // IMPORTANT: set Host to the target domain
+    headers.set("Host", "chatgpt.com");
+
+    // Optional but often needed
+    headers.set("Origin", "https://chatgpt.com");
+    headers.set("Referer", "https://chatgpt.com/");
+
+    // Create the proxied request
+    const proxiedRequest = new Request(targetUrl.toString(), {
+      method: request.method,
+      headers,
+      body: request.body,
+      redirect: "manual",
+    });
+
+    // Fetch from upstream
+    const response = await fetch(proxiedRequest);
+
+    // Return response as-is
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  },
+};
